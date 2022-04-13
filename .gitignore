@@ -1,0 +1,9 @@
+/.pytest_cache/
+/venv
+/venv/*
+/.idea
+__pycache__
+*__py*
+
+# C extensions
+*.so
