@@ -17,10 +17,9 @@ from schematics.types import BaseType, StringType
 from py_src.back_end.epidemic_models.exceptions import InvalidDispersalException, InvalidDispersalParamsException
 
 LAMBDA_TIMEOUT = 300
-PATH_TO_TEMP_STORE = f'{os.getcwd()}/tree_epi_back/src/temp_dat_store/'
-PATH_TO_DATA_STORE = f'{os.getcwd()}/tree_epi_back/src/gdata_store/'
-PATH_TO_DATA_ANIM = f'{os.getcwd()}/tree_epi_back/src/anim_data/temp_frames'
-PATH_TO_CPP_EXECUTABLE = f'{os.getcwd()}/tree_epi_back/cpp_executable/'
+PATH_TO_TEMP_STORE = f'{os.getcwd()}/py_src/back_end/temp_dat_store/'
+PATH_TO_DATA_STORE = f'{os.getcwd()}/py_src/back_end/anim_data/'
+PATH_TO_CPP_EXECUTABLE = f'{os.getcwd()}/cpp_src'
 PATH_TO_TEMP = '/tmp/anim_data'
 
 # --------------Parameters and constants -------------- #
@@ -199,7 +198,7 @@ def mkdir_tmp_store():
 
 
 # --------------Setter functions-------------- #
-def set_dispersal(model: str, ADB_mode: Optional[bool] = False, dispersal_param: Optional = None,
+def set_dispersal(model: str, ADB_mode: Optional[bool] = False, dispersal_param = None,
                   normed: Optional[bool] = True) -> Dispersal:
     """
     Set the form/config of dispersal
@@ -374,8 +373,8 @@ def get_ADB_lifetimes() -> Tuple[ADB_E_lt, ADB_I_lt]:
     return exposed_lt, infected_lt
 
 
-def set_R0_trace(active: bool = False, first_gen_only: bool = True, get_distances: Optional = False,
-                 transition_times: Optional = False,  get_network: Optional = False) -> R0_tracker:
+def set_R0_trace(active: bool = False, first_gen_only: bool = True, get_distances: Optional[bool] = False,
+                 transition_times: Optional[bool] = False,  get_network: Optional[bool] = False) -> R0_tracker:
     """
     Config for contact-traced secondary-infections
     :param transition_times:

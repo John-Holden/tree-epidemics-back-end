@@ -1,12 +1,44 @@
-import logging
 import datetime as dt
-
 from py_src.back_end.epidemic_models.compartments import SIR
-from py_src.params_and_config import GenericSimulationConfig, RuntimeSettings, SaveOptions, \
-    PATH_TO_CPP_EXECUTABLE
+from py_src.back_end.epidemic_models.utils.common_helpers import get_tree_density, get_model_name, logger, write_simulation_params
+from py_src.params_and_config import (PATH_TO_CPP_EXECUTABLE, GenericSimulationConfig, RuntimeSettings, SaveOptions, 
+                                      set_dispersal, set_domain_config, set_runtime, set_infectious_lt, set_initial_conditions, 
+                                      set_infection_dynamics, set_R0_trace)
+    
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+
+def get_simulation_config(sim_params: dict) -> GenericSimulationConfig:
+    """Validate and return the simulation configuaration """
+
+    host_number = int(sim_params['host_number'])
+    domain_size = tuple(map(int, sim_params['domain_size']))
+    dispersal = set_dispersal(sim_params['dispersal_type'], sim_params['dispersal_param'])
+    
+    domain = set_domain_config(domain_type='simple_square',
+                               scale_constant=1,
+                               patch_size=domain_size,
+                               tree_density=get_tree_density(host_number, domain_size))
+
+    runtime = set_runtime(int(sim_params['simulation_runtime']))
+    infectious_lt = set_infectious_lt('exp', int(sim_params['infectious_lifetime']))
+
+    infection_dynamics = set_infection_dynamics('SIR',
+                                                int(sim_params['secondary_R0']),
+                                                pr_approx=False)
+
+    initial_conditions = set_initial_conditions(sim_params['initially_infected_dist'],
+                                                int(sim_params['initially_infected_hosts']))
+
+    return GenericSimulationConfig({'runtime': runtime,
+                                    'dispersal': dispersal,
+                                    'infection_dynamics': infection_dynamics,
+                                    'infectious_lt': infectious_lt,
+                                    'initial_conditions': initial_conditions,
+                                    'domain_config': domain,
+                                    'R0_trace': set_R0_trace(active=False),
+                                    'sim_name': get_model_name(infection_dynamics.compartments, dispersal.model_type)})
+
+
 
 
 def pre_sim_checks(sim_context: GenericSimulationConfig, save_options: SaveOptions):
@@ -68,6 +100,10 @@ def generic_SIR_animation(sim_context: GenericSimulationConfig, save_options: Sa
 def execute_cpp_SIR(sim_context: GenericSimulationConfig, save_options: SaveOptions, runtime_settings: RuntimeSettings):
     from ctypes import cdll
 
+    logger('execute_cpp_SIR - loading library and running compiled simulation')
+    
+    write_simulation_params(sim_context, save_options, runtime_settings)
+
     lib = cdll.LoadLibrary(f'{PATH_TO_CPP_EXECUTABLE}/libSIR.so')
 
     class SimulationExecutor:
@@ -78,8 +114,13 @@ def execute_cpp_SIR(sim_context: GenericSimulationConfig, save_options: SaveOpti
             return lib.execute(self.obj, a)
 
     s = SimulationExecutor()
-    out = s.ExecuteRun(123456789)
-    print(f'out from c++ == {out}')
-    print(sim_context)
-    print(save_options)
-    print(runtime_settings)
+    try:
+        start = dt.datetime.now()
+        out = s.ExecuteRun(5)
+        elapsed = dt.datetime.now() - start
+    except Exception as e:
+        elapsed = dt.datetime.now() - start
+        logger(f'execute_cpp_SIR - ERROR! Exiting after {elapsed} (s)')
+        raise e
+
+    logger(f'execute_cpp_SIR - finished in {elapsed} (s)')
