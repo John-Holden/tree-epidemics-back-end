@@ -1,6 +1,4 @@
 #include <string>
-#include <string>
-#include <string>
 #include <iostream>
 
 using namespace std; // use all std object names etc. 

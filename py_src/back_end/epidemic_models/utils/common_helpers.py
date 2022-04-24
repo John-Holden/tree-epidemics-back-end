@@ -1,4 +1,5 @@
 import math
+import json
 import numpy as np
 import datetime as dt
 from typing import Optional, List
@@ -103,37 +104,41 @@ def logger(msg: str, extra: Optional[dict] = None):
     print(msg)
 
 
-def write_simulation_params(sim_context: GenericSimulationConfig, save_options: SaveOptions, rt_settings: RuntimeSettings):
+def write_simulation_params(sim_context: GenericSimulationConfig, save_options: SaveOptions, rt_settings: RuntimeSettings) -> str:
     """
-    Write simulation parameters to file - pickek up later by c++ executable
+    Write simulation parameters to json file & return save location - loaded in by c++ executable
     """
-    known_inbuilts = ['count', 'index']
-    sim_write_loc = f'{PATH_TO_TEMP_STORE}/{dt.datetime.now().strftime("%d%m%Y%H%M%S")}'
-    # todo spike json parser...
-    with open(sim_write_loc, mode='w') as write_file:
-        for obj in sim_context.items():
-            config_element = obj[0]
-            
-            if config_element == 'sim_name':
-                write_file.writelines(f'sim name: {obj[1]}\n') 
-                continue
+    
+    sim_write_loc = f'{PATH_TO_TEMP_STORE}{dt.datetime.now().strftime("%d%m%Y%H%M%S")}'
 
-            if config_element == 'domain_config':
-                continue
+    sim_params = {}
 
+    for obj in sim_context.items():
+        # Iterate through each config element
+        config_element_name, config_element_value = obj
+
+        if config_element_name == 'sim_name':
+            sim_params["sim_name"] = sim_context.sim_name
         
-            write_file.writelines(f'{obj[0]}\n') 
-            
-            
-            for dir_obj in dir(obj[1]):
-                if dir_obj.startswith('_') or dir_obj in known_inbuilts:
-                    continue
-
-                write_file.writelines(f'- {dir_obj}: \n') 
-                print('relevant dir obj = ', dir_obj)
-            
-
+        elif config_element_name == 'domain_config':
+            sim_params["domain"] = {"type": sim_context.domain_config.domain_type, "scale_const": sim_context.domain_config.scale_constant,
+                                    "tree_density": sim_context.domain_config.tree_density, "patch_size": sim_context.domain_config.patch_size}      
         
+        elif config_element_name == "dispersal":
+            sim_params["dispersal"] = {"model": sim_context.dispersal.model_type, "value": sim_context.dispersal.value, "norm": sim_context.dispersal.norm_factor}
+        
+        else:
+            config_element_dict = config_element_value._asdict()
+            sim_params[config_element_name] = config_element_dict
+
+
+    sim_params['save_options'] = json.loads(save_options.to_json())
+    sim_params['rt_settings'] = json.loads(rt_settings.to_json())
+
+    with open(f'{sim_write_loc}.json', 'w') as f:
+        json.dump(sim_params, f, indent=4)
+
+    return sim_write_loc
 
         
      

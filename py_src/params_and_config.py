@@ -4,6 +4,7 @@ Define classes for dispersal_model parameters, settings and metrics.
     - density values from Fex dataset https://doi.org/10.1002/ece3.2661
 """
 import os
+import json
 import types
 import datetime
 import numpy as np
@@ -68,6 +69,9 @@ class SaveOptions:
     save_st_fields: bool = False  # st: "spatio-temporal"
     save_percolation: bool = False
     save_field_time_series: bool = False  # e.g. S(t), I(t), R(t)
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)
 
 
 @dataclass
@@ -82,6 +86,9 @@ class RuntimeSettings:
     frame_ext = '.png'
     fields_at_freq: bool = False
     verbosity = 2  # verbosity
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)
 
     @staticmethod
     def ensemble_config(self):

@@ -15,12 +15,7 @@ CORS(app)
 
 def simulate(sim_config: GenericSimulationConfig, save_options: SaveOptions, rt_settings: RuntimeSettings):
     mkdir_tmp_store()
-    try:
-        execute_cpp_SIR(sim_config, save_options, rt_settings)
-    except Exception as e:
-        msg = f'Error when executing SIR model - {e}'
-        print(msg)
-        raise e
+    execute_cpp_SIR(sim_config, save_options, rt_settings)
 
 
 @app.route("/", methods=['POST'])
@@ -44,7 +39,7 @@ def simulation_request_handler():
         # TODO placeholder resp for now
         return make_response(jsonify(message=f'this is what you gave me mofo {sim_config} '), 200)
     except Exception as e:
-        logger(' simulation_request_handler', extra={'simulation': 'Reason', 'Error': e})
+        logger(f' simulation_request_handler Error - {e}')
         return make_response(jsonify(error=f'{e}'), 500)
 
 

@@ -1,3 +1,4 @@
+import ctypes
 import datetime as dt
 from py_src.back_end.epidemic_models.compartments import SIR
 from py_src.back_end.epidemic_models.utils.common_helpers import get_tree_density, get_model_name, logger, write_simulation_params
@@ -102,25 +103,25 @@ def execute_cpp_SIR(sim_context: GenericSimulationConfig, save_options: SaveOpti
 
     logger('execute_cpp_SIR - loading library and running compiled simulation')
     
-    write_simulation_params(sim_context, save_options, runtime_settings)
-
     lib = cdll.LoadLibrary(f'{PATH_TO_CPP_EXECUTABLE}/libSIR.so')
-
     class SimulationExecutor:
         def __init__(self):
             self.obj = lib.newSimOjb()
 
-        def ExecuteRun(self, a: int):
-            return lib.execute(self.obj, a)
+        def Execute(self, sim_name: str):
+            c_string = ctypes.c_char_p(sim_name.encode('UTF-8'))
+            return lib.execute(self.obj, c_string)
 
-    s = SimulationExecutor()
+
     try:
+        sim_handler = SimulationExecutor()
         start = dt.datetime.now()
-        out = s.ExecuteRun(5)
+        sim_name = write_simulation_params(sim_context, save_options, runtime_settings)
+        out = sim_handler.Execute(sim_name)
         elapsed = dt.datetime.now() - start
     except Exception as e:
         elapsed = dt.datetime.now() - start
-        logger(f'execute_cpp_SIR - ERROR! Exiting after {elapsed} (s)')
+        logger(f'execute_cpp_SIR - ERROR! Exiting after {elapsed} (s)', extra={"Reason": e})
         raise e
 
     logger(f'execute_cpp_SIR - finished in {elapsed} (s)')
