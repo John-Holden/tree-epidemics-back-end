@@ -109,7 +109,7 @@ def write_simulation_params(sim_context: GenericSimulationConfig, save_options: 
     Write simulation parameters to json file & return save location - loaded in by c++ executable
     """
     
-    sim_write_loc = f'{PATH_TO_TEMP_STORE}{dt.datetime.now().strftime("%d%m%Y%H%M%S")}'
+    sim_write_loc = f'{PATH_TO_TEMP_STORE}{dt.datetime.now().strftime("%d%m%Y%H%M%S")}.json'
 
     sim_params = {}
 
@@ -135,7 +135,7 @@ def write_simulation_params(sim_context: GenericSimulationConfig, save_options: 
     sim_params['save_options'] = json.loads(save_options.to_json())
     sim_params['rt_settings'] = json.loads(rt_settings.to_json())
 
-    with open(f'{sim_write_loc}.json', 'w') as f:
+    with open(f'{sim_write_loc}', 'w') as f:
         json.dump(sim_params, f, indent=4)
 
     return sim_write_loc

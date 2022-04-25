@@ -5,6 +5,6 @@
 __pycache__
 *__py*
 *.vs*
-
+/temp_data/!readme*
 # C extensions
 *.so

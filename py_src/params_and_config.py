@@ -18,7 +18,7 @@ from schematics.types import BaseType, StringType
 from py_src.back_end.epidemic_models.exceptions import InvalidDispersalException, InvalidDispersalParamsException
 
 LAMBDA_TIMEOUT = 300
-PATH_TO_TEMP_STORE = f'{os.getcwd()}/py_src/back_end/temp_dat_store/'
+PATH_TO_TEMP_STORE = f'{os.getcwd()}/temp_data/'
 PATH_TO_DATA_STORE = f'{os.getcwd()}/py_src/back_end/anim_data/'
 PATH_TO_CPP_EXECUTABLE = f'{os.getcwd()}/cpp_src'
 PATH_TO_TEMP = '/tmp/anim_data'
