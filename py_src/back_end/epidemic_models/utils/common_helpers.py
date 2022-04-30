@@ -1,3 +1,4 @@
+import os
 import math
 import json
 import numpy as np
@@ -109,7 +110,11 @@ def write_simulation_params(sim_context: GenericSimulationConfig, save_options: 
     Write simulation parameters to json file & return save location - loaded in by c++ executable
     """
     
-    sim_write_loc = f'{PATH_TO_TEMP_STORE}{dt.datetime.now().strftime("%d%m%Y%H%M%S")}.json'
+    sim_write_loc = f'{PATH_TO_TEMP_STORE}{dt.datetime.now().strftime("%d%m%Y%H%M%S")}'
+    if os.path.exists(sim_write_loc):
+        raise Exception(f'Path {sim_write_loc} already exists!')
+    else:
+        os.mkdir(sim_write_loc)
 
     sim_params = {}
 
@@ -135,10 +140,22 @@ def write_simulation_params(sim_context: GenericSimulationConfig, save_options: 
     sim_params['save_options'] = json.loads(save_options.to_json())
     sim_params['rt_settings'] = json.loads(rt_settings.to_json())
 
-    with open(f'{sim_write_loc}', 'w') as f:
+    with open(f'{sim_write_loc}/parameters.json', 'w') as f:
         json.dump(sim_params, f, indent=4)
 
     return sim_write_loc
+
+
+def write_SIR_fields(sim_save_loc: str, S: List[np.ndarray], I: List[np.ndarray], R: List[np.ndarray]) -> None:
+    """
+    Write SI fields to csv (should be no R fields at t=0)
+    """
+    S_ = np.zeros(shape=(2, len(S[0]))).astype(int)
+    I_ = np.zeros(shape=(3, len(I[0]))).astype(int)
+    S_[0], S_[1] = S[0], S[1]
+    I_[0], I_[1], I_[2] = I[0], I[1], I[2]
+    np.savetxt(f'{sim_save_loc}/S.csv', S_, fmt='%i', delimiter=',')
+    np.savetxt(f'{sim_save_loc}/I.csv', I_, fmt='%i', delimiter=',')
 
         
      

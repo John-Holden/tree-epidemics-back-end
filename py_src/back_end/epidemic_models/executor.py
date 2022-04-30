@@ -1,7 +1,10 @@
 import ctypes
 import datetime as dt
 from py_src.back_end.epidemic_models.compartments import SIR
-from py_src.back_end.epidemic_models.utils.common_helpers import get_tree_density, get_model_name, logger, write_simulation_params
+from py_src.back_end.epidemic_models.utils.dynamics_helpers import set_SIR
+from py_src.back_end.epidemic_models.utils.common_helpers import (get_tree_density, get_model_name, logger, write_simulation_params,
+                                                                  write_SIR_fields)
+
 from py_src.params_and_config import (PATH_TO_CPP_EXECUTABLE, GenericSimulationConfig, RuntimeSettings, SaveOptions, 
                                       set_dispersal, set_domain_config, set_runtime, set_infectious_lt, set_initial_conditions, 
                                       set_infection_dynamics, set_R0_trace)
@@ -99,6 +102,7 @@ def generic_SIR_animation(sim_context: GenericSimulationConfig, save_options: Sa
 
 
 def execute_cpp_SIR(sim_context: GenericSimulationConfig, save_options: SaveOptions, runtime_settings: RuntimeSettings):
+    """C-bindigns that call pre-compiled simulation code"""
     from ctypes import cdll
 
     logger('execute_cpp_SIR - loading library and running compiled simulation')
@@ -112,11 +116,12 @@ def execute_cpp_SIR(sim_context: GenericSimulationConfig, save_options: SaveOpti
             c_string = ctypes.c_char_p(sim_name.encode('UTF-8'))
             return lib.execute(self.obj, c_string)
 
-
     try:
         sim_handler = SimulationExecutor()
         start = dt.datetime.now()
         sim_name = write_simulation_params(sim_context, save_options, runtime_settings)
+        S, I, R = set_SIR(sim_context.domain_config, sim_context.initial_conditions, sim_context.infectious_lt)
+        write_SIR_fields(sim_name, S, I, R)
         out = sim_handler.Execute(sim_name)
         elapsed = dt.datetime.now() - start
     except Exception as e:

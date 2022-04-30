@@ -14,12 +14,18 @@ CORS(app)
 
 
 def simulate(sim_config: GenericSimulationConfig, save_options: SaveOptions, rt_settings: RuntimeSettings):
+    """
+        Simulate the spread of disease
+    """
     mkdir_tmp_store()
     execute_cpp_SIR(sim_config, save_options, rt_settings)
 
 
 @app.route("/", methods=['POST'])
 def simulation_request_handler():
+    """
+        Handel input requests and validate input parameters
+    """
     start = dt.datetime.now()
     sim_config = get_simulation_config(request.get_json(force=True))
     rt_settings = RuntimeSettings()
