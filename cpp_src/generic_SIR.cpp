@@ -24,5 +24,5 @@ class Simulation{
 
 extern "C" {
     Simulation* newSimOjb(){ return new Simulation(); }
-    int execute(Simulation* simulation, char* a){ return simulation->Execute(a); }
+    int execute(Simulation* simulation, char* SimPath){ return simulation->Execute(SimPath); }
     }

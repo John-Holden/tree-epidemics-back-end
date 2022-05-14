@@ -1,5 +1,7 @@
 #include <string>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <jsoncpp/json/json.h>
 // #include "common.h"
 
@@ -21,7 +23,28 @@ int SetI(string DistType, int InitInfected, int PatchSz[2], int InfectedLT)
 
 vector<vector<int>> LoadS(string SimLocation)
 {   
+    int val;
+    string line, line1;
+    vector<int> dataField;
+    fstream CSVfile (SimLocation+"/S.csv", ios::in);
+    if(!CSVfile.is_open()) throw std::runtime_error("Error could not open file in " + SimLocation);
+    if (CSVfile.good()) {} else {throw std::runtime_error("Error detected in file stream!");}
+    // todo 1) re-write files to field loc, S, I, R. where loc is x,y
+    while (getline(CSVfile, line)) 
+    {
+        int index = 0;
+        std: stringstream ss(line);
+        while(ss >> val)
+            {   
+                dataField.push_back(val);
+                if(ss.peek() == ',') ss.ignore();
+                cout << val << endl;
+                index ++;
+            }    
+    }
+
     vector<vector<int>> S = { {1, 2, 3}, {4, 5, 6}, {7, 8, 9} };
+
     return S;
 }
 
